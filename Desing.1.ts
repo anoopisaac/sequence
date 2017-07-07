@@ -94,14 +94,15 @@ namespace UmlLight {
 
         }
         onMouseMove(data: Data) {
+            //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
             //move the figure
             this.moveFigure(data);
-            //check whether any of the snapping grid of this figure coincides with snapping grids of any others
+
 
         }
 
-        moveFigure(data:Data){
-            //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
+        moveFigure(data: Data) {
+
             //check whether move is for scaling or normal move
             if (this.store.selectedGuide) {
                 var selectedFig: Figure = this.store.selectedGuide.parent;
@@ -111,20 +112,30 @@ namespace UmlLight {
                 var selectedFigures = this.store.selectedFiguresToMove;
                 selectedFigures.forEach(figure => {
                     figure.move(data.offset);
+
                 })
+                //check whether any of the snapping grid of this figure coincides with snapping grids of any others
+                this.handleSnapping(data);
             }
         }
 
-        checkFor
 
+        handleSnapping(data: Data) {
+            var selectedFigures = this.store.selectedFiguresToMove;
+            selectedFigures.forEach(figure => {
+                //get snaps lines based on the direction of move; if x>0, snap should be x and vice versa
+                var absSnaps: number[] = figure.getAbsSnapPositions(data.offset.x > 0 ? "x" : "y");
+                //go through each of the snaps for the moving figure 
+                absSnaps.forEach(snapPosition=>{
+                    //check whether any of the figure has snap lines which are within snap distance 
 
+                })
+            })
+
+        }
 
 
     }
-
-
-
-
 
     class Action {
         type: string;
@@ -158,26 +169,23 @@ namespace UmlLight {
         guides: Guide[] = [];// this would be in percentages
         figureVertices: FigureVertex[] = [];//this would be in percentages, this would decide the actual shape of the figure which will be done in svg
         position: Position;//relatie position of the figure
-        snap:Snap;
+        snap: SnapLines;
         figureAttrs: FigureAttrs;
         selected: boolean;
         rotation: number;
-       
-        constructor(private parent:Figure) {
+
+        constructor(private parent: Figure) {
 
         }
-        withinCatchmentArea(): boolean {
-            return true;
+
+        getAbsSnapPositions(cordinate: string): number[] {
+            //todo:find absolute position of snaps by going through 'Snap' class and getting position based on cordinate passed
+            return null;
         }
         move(offset: Offset) {
             //todo:code to snap to nearest half cell by using % to the direction it was moved
-            
+
         }
-
-
-
-
-
         scale(guide: Guide, offset: Offset) {
             //todo:add the new offset to width and height
             //todo:move left and top based on the offset if guide seems to be the one on the left side.
@@ -234,9 +242,9 @@ namespace UmlLight {
         position: Position;
         visible: boolean;//decides whether this particular guide needs to be shown, for some figures all the guides might not be shown
     }
-    class Snap{
-        x:number[]=[];
-        y:number[]=[];
+    class SnapLines {
+        x: number[] = [];
+        y: number[] = [];
     }
 
     class Message extends Figure {

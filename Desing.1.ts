@@ -32,6 +32,7 @@ namespace UmlLight {
 
     class StoreUpdateService {
         store: Store = new Store();
+        grideService: GrideService;
         updateState(action: Action) {
             switch (action.type) {
                 case ACTION_CNTRL_DOWN: {
@@ -122,16 +123,14 @@ namespace UmlLight {
 
         handleSnapping(data: Data) {
             var selectedFigures = this.store.selectedFiguresToMove;
+            var selectedSnaps: SelectedSnap[] = this.grideService.getClosestSnaps(selectedFigures);
+            //todo: code for showing selected snap lines
+            //todo: go through selected figures and moved snapped amount
+            var snappedOffset:Offset;
             selectedFigures.forEach(figure => {
-                //get snaps lines based on the direction of move; if x>0, snap should be x and vice versa
-                var absSnaps: number[] = figure.getAbsSnapPositions(data.offset.x > 0 ? "x" : "y");
-                //go through each of the snaps for the moving figure 
-                absSnaps.forEach(snapPosition=>{
-                    //check whether any of the figure has snap lines which are within snap distance 
-
-                })
+                figure.move(snappedOffset);
             })
-
+            
         }
 
 
@@ -178,7 +177,7 @@ namespace UmlLight {
 
         }
 
-        getAbsSnapPositions(cordinate: string): number[] {
+        getAbsSnapLines(cordinate: string): number[] {
             //todo:find absolute position of snaps by going through 'Snap' class and getting position based on cordinate passed
             return null;
         }
@@ -231,6 +230,32 @@ namespace UmlLight {
             return null;
         }
 
+
+    }
+
+    interface SelectedSnap { figure: Figure; snapLine: number; distance: number }
+    class GrideService {
+        store: Store;
+
+        getClosestSnaps(selectedFigures: Figure[]): SelectedSnap[] {
+            //todo:go through all other figures from the stores and get the snapping line for all those
+            var allOtherSnaps: number[];
+            var selectedSnaps: SelectedSnap[];
+            selectedFigures.forEach(figure => {
+                //todo: go through all the snap lines for this figures
+                //todo: get the ones within the limit
+                //all those to the list 'snaps' list
+
+            })
+            //todo: sort snaps list and return the ones with lowest distance, there could be multiple
+            var reducedSnaps: SelectedSnap[];
+            return reducedSnaps;
+
+        }
+        getAllOtherSnapLines(figures: Figure[]): number[] {
+            //todo:go through all other figures from the stores and get the snapping line for all those
+            return null;
+        }
 
     }
 

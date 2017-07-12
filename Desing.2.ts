@@ -1,7 +1,3 @@
-//things take care
-//1.activations should fall back to lifeline if the movement is within the limit
-//2.you could bring any svg element to front by rendering it at teh last, would need design changes
-
 namespace UmlLight {
 
     class Store {
@@ -36,7 +32,7 @@ namespace UmlLight {
 
     class StoreUpdateService {
         store: Store = new Store();
-        grideService: GridService;
+        grideService: GrideService;
         updateState(action: Action) {
             switch (action.type) {
                 case ACTION_CNTRL_DOWN: {
@@ -110,7 +106,7 @@ namespace UmlLight {
 
             //check whether move is for scaling or normal move
             if (this.store.selectedGuide) {
-                var selectedFig: Figure = this.store.selectedGuide.figure;
+                var selectedFig: Figure = this.store.selectedGuide.parent;
                 selectedFig.scale(this.store.selectedGuide, data.offset);
             }
             else {
@@ -120,7 +116,6 @@ namespace UmlLight {
 
                 })
                 //check whether any of the snapping grid of this figure coincides with snapping grids of any others
-                //todo:only do snapping if 's' is pressed.
                 this.handleSnapping(data);
             }
         }
@@ -130,12 +125,12 @@ namespace UmlLight {
             var selectedFigures = this.store.selectedFiguresToMove;
             var selectedSnaps: SelectedSnap[] = this.grideService.getClosestSnaps(selectedFigures);
             //todo: code for showing selected snap lines
-            //todo: go through selected figures and move snapped amount
-            var snappedOffset: Offset;
+            //todo: go through selected figures and moved snapped amount
+            var snappedOffset:Offset;
             selectedFigures.forEach(figure => {
                 figure.move(snappedOffset);
             })
-
+            
         }
 
 
@@ -169,29 +164,23 @@ namespace UmlLight {
         height: number;
         rotation: number;
     }
-
-    interface BoxSelectable {
-        guides: Guide[];
-
-    }
-
-    interface Snappable {
-        snap: SnapLines;
-    }
-
     class Figure {
+        guides: Guide[] = [];// this would be in percentages
         figureVertices: FigureVertex[] = [];//this would be in percentages, this would decide the actual shape of the figure which will be done in svg
         position: Position;//relatie position of the figure
-
+        snap: SnapLines;
         figureAttrs: FigureAttrs;
         selected: boolean;
         rotation: number;
-        gridService: GridService;
 
         constructor(private parent: Figure) {
 
         }
 
+        getAbsSnapLines(cordinate: string): number[] {
+            //todo:find absolute position of snaps by going through 'Snap' class and getting position based on cordinate passed
+            return null;
+        }
         move(offset: Offset) {
             //todo:code to snap to nearest half cell by using % to the direction it was moved
 
@@ -201,20 +190,30 @@ namespace UmlLight {
             //todo:move left and top based on the offset if guide seems to be the one on the left side.
 
         }
-       
-    }
-    class LifeLine extends Figure implements BoxSelectable, Snappable {
-        snap: SnapLines;
-        gridService:GridService;
-        
+        setNewFigureAttrs(guide: Guide, offset: Offset) {
 
-        guides: Guide[];//this needs to be populated by the implementing figure
-    }
-    class LifeLineHead {
+        }
+        setNewPositionIfNeeded(guide: Guide, offset: Offset) {
+        }
+
 
     }
-    class Activation extends Figure implements BoxSelectable {
-        guides: Guide[];//this needs to be populated by the implementing figure
+    class LifeLine extends Figure {
+        activations: Activation[];
+        outgoingMessages: Message[];
+        transform(guide: Guide) {
+            //set the height and width of the figure, rest everything else should follow
+        }
+
+        getStartPosition(message: Message): Position {
+            return null;
+        }
+        getEndPosition(message: Message): Position {
+            return null;
+        }
+
+    }
+    class Activation extends Figure {
         catchmentDist: number = 10;
         constructor(private figureAttrService: FigureAttrService) {
             super(null);
@@ -235,7 +234,7 @@ namespace UmlLight {
     }
 
     interface SelectedSnap { figure: Figure; snapLine: number; distance: number }
-    class GridService {
+    class GrideService {
         store: Store;
 
         getClosestSnaps(selectedFigures: Figure[]): SelectedSnap[] {
@@ -243,10 +242,9 @@ namespace UmlLight {
             var allOtherSnaps: number[];
             var selectedSnaps: SelectedSnap[];
             selectedFigures.forEach(figure => {
-                //todo:check whether figure is snappable by checking the type
                 //todo: go through all the snap lines for this figures
-                //todo: get the ones within the limit; probably there is no need to check the direction of movement here;
-                //todo: add all those to the list 'snaps' list
+                //todo: get the ones within the limit
+                //all those to the list 'snaps' list
 
             })
             //todo: sort snaps list and return the ones with lowest distance, there could be multiple
@@ -265,9 +263,8 @@ namespace UmlLight {
         position: Position;
     }
     class Guide {
-        figure: Figure;//would be the figure which implements this, value for this would come from 'BoxSelection' class
-        position: Position; //this is needed as the figure has figure out, which guide was clicked later on
-        absPosition: Position;// this would decide the actual position where guide has to go, would be calcuated by the impl figure
+        parent: Figure;
+        position: Position;
         visible: boolean;//decides whether this particular guide needs to be shown, for some figures all the guides might not be shown
     }
     class SnapLines {

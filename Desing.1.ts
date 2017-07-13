@@ -217,6 +217,9 @@ namespace UmlLight {
     class Activation extends Figure implements BoxSelectable {
         guides: Guide[];//needed only to control the depth
 
+        outgoingMessages:ConnectedMessage[];
+        incomingMessages:ConnectedMessage[];
+        
         scale(guide: Guide, offset: Offset) {
             //todo:add the new offset  height
 
@@ -227,6 +230,7 @@ namespace UmlLight {
 
     class ConnectedMessage{
         connectionPoint:Position;
+        message:Message;
 
     }
 

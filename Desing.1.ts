@@ -1,6 +1,8 @@
 //things take care
 //1.activations should fall back to lifeline if the movement is within the limit
 //2.you could bring any svg element to front by rendering it at teh last, would need design changes
+//all figures will have unique id, so that they could be referenced from other figures
+//3.while storing figures all the figure references in would be replaced by their unique id
 
 namespace UmlLight {
 
@@ -186,14 +188,13 @@ namespace UmlLight {
         figureAttrs: FigureAttrs;
         selected: boolean;
         rotation: number;
-        gridService: GridService;
 
         constructor(private parent: Figure) {
 
         }
 
         move(offset: Offset) {
-            //todo:code to snap to nearest half cell by using % to the direction it was moved
+            //todo:move the figure x and y position
 
         }
         scale(guide: Guide, offset: Offset) {
@@ -204,33 +205,28 @@ namespace UmlLight {
        
     }
     class LifeLine extends Figure implements BoxSelectable, Snappable {
-        snap: SnapLines;
-        gridService:GridService;
-        
-
+        snap: SnapLines;        
         guides: Guide[];//this needs to be populated by the implementing figure
+        lifeHead:LifeLineHead;
     }
     class LifeLineHead {
+        //vertices that would paint the head of the lifeline, some of them would be absolute position and head depth doesnt change with figure height
+        vertices:Position[];
+    }
+
+    class Activation extends Figure implements BoxSelectable {
+        guides: Guide[];//needed only to control the depth
+
+        scale(guide: Guide, offset: Offset) {
+            //todo:add the new offset  height
+
+        }
+
 
     }
-    class Activation extends Figure implements BoxSelectable {
-        guides: Guide[];//this needs to be populated by the implementing figure
-        catchmentDist: number = 10;
-        constructor(private figureAttrService: FigureAttrService) {
-            super(null);
-        }
-        //this one is for self messages
-        childActivations: Activation[];
-        //highlight if needed when arrow messages are near
-        highlight(message: Message, side: string, movingGuide: Guide): boolean {
-            return false;
 
-        }
-        getPointOfImpact(message: Message, side: string): Position {
-
-            return null;
-        }
-
+    class ConnectedMessage{
+        connectionPoint:Position;
 
     }
 
@@ -276,34 +272,31 @@ namespace UmlLight {
     }
 
     class Message extends Figure {
-        startLifeLine: LifeLine;
+        startLifeLine: LifeLine;//probably this reference would be redudant when you think of the whole picture starting from getting it from database
         destLifeLine: LifeLine;
-        startPos: Position;
-        destPos: Position;
-        figureAttrService: FigureAttrService;
-        constructor(source: LifeLine, destination: LifeLine, figureAttrService: FigureAttrService) {
+        startPos: Position;// todo: this needs to populated when initially all figures are loaded based on json entry in the database
+        endPos: Position;
+        constructor() {
             super(null);
-            this.setMessageAttrs();
         }
 
-        setMessageAttrs() {
-
+       
+        moveStartPos(position:Position) {
+           //this will called when start lifeline moves if its connected or when user decides to move it by clicking start 'guide'
+           this.startPos=position;
         }
 
-        move(offset: Offset) {
-            super.move(offset);
-            this.setRotationAngle();
+        moveEndPos(position:Position) {
+           //this will called when end lifeline moves if its connected or when user decides to move it by clicking end 'guide'
+           this.endPos==position;
         }
-        setRotationAngle() {
-            //
-        }
+       
 
     }
 
+    //this would require a equation for genrating a curve lined
     class SelfMessage extends Message {
-        constructor(source: LifeLine, destination: LifeLine, figureAttrService: FigureAttrService) {
-            super(source, destination, figureAttrService);
-        }
+        //todo:get an equation to generate a curved line using 'start' and 'end' position
 
     }
 

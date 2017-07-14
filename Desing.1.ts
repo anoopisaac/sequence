@@ -9,11 +9,12 @@ namespace UmlLight {
     class Store {
         figures: Figure[] = [];
         selectedFiguresToMove: Figure[] = [];
-        selectedGuide: Guide;
+        selectedBoxGuide: Guide;
+        selectedMessageGuide: Guide;
         mouseClickedPos: Position;
         mouseDown: boolean = false;
         cntrlDown: boolean = false;
-
+        aboutTobeConnectedActivation:{activation:Activation,position:Position};
         //the kind of data that is common for all the figures present in the store
         setup: SetUp;
 
@@ -23,7 +24,8 @@ namespace UmlLight {
 
     }
     const ACTION_FIGURE_SELECT: string = "FIGURE_SELECTED";
-    const ACTION_GUIDE_SELECT: string = "GUIDE_SELECTED";
+    const ACTION_BOX_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
+    const ACTION_MESSAGE_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
     const ACTION_MOUSE_MOVE: string = "MOUSE_MOVE";
     const ACTION_SET_MOUSE_POS: string = "SET_MOUSE_POS";
     const ACTION_RELEASE_SELECTION: string = "RELEASE_SELECTION"
@@ -53,8 +55,12 @@ namespace UmlLight {
                     this.select(action.data.target);
                     break;
                 }
-                case ACTION_GUIDE_SELECT: {
-                    this.store.selectedGuide = action.data.target;
+                case ACTION_BOX_GUIDE_SELECT: {
+                    this.store.selectedBoxGuide = action.data.target;
+                    break;
+                }
+                case ACTION_MESSAGE_GUIDE_SELECT: {
+                    this.store.selectedMessageGuide = action.data.target;
                     break;
                 }
                 case ACTION_MOUSE_DOWN: {
@@ -64,6 +70,7 @@ namespace UmlLight {
                 }
                 case ACTION_MOUSE_UP: {
                     this.store.mouseDown = false;
+                    //todo: if 'aboutTobeConnectedActivation' is not null, call the connect call in 'activation'
                     break;
                 }
                 case ACTION_MOUSE_MOVE: {
@@ -102,29 +109,57 @@ namespace UmlLight {
         }
         onMouseMove(data: Data) {
             //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
-            //move the figure
-            this.moveFigure(data);
+            //check whether movement belongs to guide
+            if (this.store.selectedBoxGuide || this.store.selectedFiguresToMove) {
+                this.scaleFigure(data);
+            }
+            else {
+                //move the figure
+                this.moveFigure(data);
+            }
+
 
 
         }
-
-        moveFigure(data: Data) {
-
-            //check whether move is for scaling or normal move
-            if (this.store.selectedGuide) {
-                var selectedFig: Figure = this.store.selectedGuide.figure;
-                selectedFig.scale(this.store.selectedGuide, data.offset);
+        scaleFigure(data: Data) {
+            if (this.store.selectedBoxGuide) {
+                var selectedFig: Figure = this.store.selectedBoxGuide.figure;
+                selectedFig.scale(this.store.selectedBoxGuide, data.offset);
             }
             else {
-                var selectedFigures = this.store.selectedFiguresToMove;
-                selectedFigures.forEach(figure => {
-                    figure.move(data.offset);
-
+                //its message guide thats selected
+                var message: Message = <Message>this.store.selectedMessageGuide.figure;
+                message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
+                //check whether modified arrow is close to any of the 'activation' figures
+                //todo:filter out activation figure from store figure list
+                var activations: Activation[] = [];
+                activations.forEach(activation => {
+                    //get the new position that would be connected to selcted activation figure
+                    var connectedPos: Position = this.grideService.isMessageClose(activation, data.mouseLocation);
+                    if (connectedPos) {
+                        //this is to move to connected pos
+                        message.movePos(this.store.selectedMessageGuide, connectedPos);
+                        //true denotes highligh
+                        //todo:get whether its start guide or end guide and pass accordingly
+                        message.highLight(true,this.store.selectedMessageGuide);
+                        //todo: populate aboutTobeConnectedActivation
+                        //todo:break after all connections are made
+                    }
                 })
-                //check whether any of the snapping grid of this figure coincides with snapping grids of any others
-                //todo:only do snapping if 's' is pressed.
-                this.handleSnapping(data);
+                //todo: if no one is connected call delight on aboutTobeConnectedActivation and make this to null
+
             }
+        }
+
+        moveFigure(data: Data) {
+            var selectedFigures = this.store.selectedFiguresToMove;
+            selectedFigures.forEach(figure => {
+                figure.move(data.offset);
+
+            })
+            //check whether any of the snapping grid of this figure coincides with snapping grids of any others
+            //todo:only do snapping if 's' is pressed.
+            this.handleSnapping(data);
         }
 
 
@@ -172,7 +207,7 @@ namespace UmlLight {
         rotation: number;
     }
 
-    interface BoxSelectable {
+    interface Guidable {
         guides: Guide[];
 
     }
@@ -202,35 +237,38 @@ namespace UmlLight {
             //todo:move left and top based on the offset if guide seems to be the one on the left side.
 
         }
-       
+
     }
-    class LifeLine extends Figure implements BoxSelectable, Snappable {
-        snap: SnapLines;        
+    class LifeLine extends Figure implements Guidable, Snappable {
+        snap: SnapLines;
         guides: Guide[];//this needs to be populated by the implementing figure
-        lifeHead:LifeLineHead;
+        lifeHead: LifeLineHead;
     }
     class LifeLineHead {
         //vertices that would paint the head of the lifeline, some of them would be absolute position and head depth doesnt change with figure height
-        vertices:Position[];
+        vertices: Position[];
     }
 
-    class Activation extends Figure implements BoxSelectable {
+    class Activation extends Figure implements Guidable {
         guides: Guide[];//needed only to control the depth
 
-        outgoingMessages:ConnectedMessage[];
-        incomingMessages:ConnectedMessage[];
-        
+        outgoingMessages: ConnectedMessage[];
+        incomingMessages: ConnectedMessage[];
+
         scale(guide: Guide, offset: Offset) {
             //todo:add the new offset  height
 
+        }
+        connectMessage(connectedPosition: Position, message: Message, isStart: boolean) {
+            //todo:create a new 'ConnectMessage' and append to the corresponding to list
         }
 
 
     }
 
-    class ConnectedMessage{
-        connectionPoint:Position;
-        message:Message;
+    class ConnectedMessage {
+        connectionPoint: Position;
+        message: Message;
 
     }
 
@@ -259,6 +297,13 @@ namespace UmlLight {
             return null;
         }
 
+        isMessageClose(activation: Activation, position: Position): Position {
+            //
+            return new Position();
+        }
+
+
+
     }
 
     class FigureVertex {
@@ -275,7 +320,8 @@ namespace UmlLight {
         y: number[] = [];
     }
 
-    class Message extends Figure {
+    class Message extends Figure implements Guidable {
+        guides: Guide[];//needed to control where the arrow goes
         startLifeLine: LifeLine;//probably this reference would be redudant when you think of the whole picture starting from getting it from database
         destLifeLine: LifeLine;
         startPos: Position;// todo: this needs to populated when initially all figures are loaded based on json entry in the database
@@ -284,17 +330,16 @@ namespace UmlLight {
             super(null);
         }
 
-       
-        moveStartPos(position:Position) {
-           //this will called when start lifeline moves if its connected or when user decides to move it by clicking start 'guide'
-           this.startPos=position;
+        highLight(status: boolean, selectedGuide: Guide) {
+            //todo:highlight/delight the position based on the status
+            //todo: find whether its start or end guide and highlight it accordingly 
         }
 
-        moveEndPos(position:Position) {
-           //this will called when end lifeline moves if its connected or when user decides to move it by clicking end 'guide'
-           this.endPos==position;
+        movePos(selectedGuide: Guide, newPos: Position) {
+            //this will called when start lifeline moves if its connected or when user decides to move it by clicking start 'guide'
+            //todo: find whether its start or end guide and assign it accordingly to 'startpos' or endps
         }
-       
+
 
     }
 

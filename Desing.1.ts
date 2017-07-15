@@ -12,6 +12,7 @@ namespace UmlLight {
         selectedBoxGuide: Guide;
         selectedMessageGuide: Guide;
         mouseClickedPos: Position;
+        copiedFigures:Figure[];
         mouseDown: boolean = false;
         cntrlDown: boolean = false;
         //this will hold all the groups user selected
@@ -37,6 +38,8 @@ namespace UmlLight {
     const ACTION_CNTRL_UP: string = "CNTRL_UP";
     const ACTION_DELETE: string = "DELETE";
     const ACTION_COPY: string = "COPY";
+    const ACTION_PASTE: string = "PASTE";
+    const ACTION_GROUP: string = "GROUP";
     const TYPE_ACTIVATION: string = "Activation"
 
 
@@ -73,11 +76,19 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_DELETE: {
-                    
+                    this.delete();
                     break;
                 }
                 case ACTION_COPY: {
-                    
+                    this.copy();
+                    break;
+                }
+                case ACTION_PASTE: {
+                    this.paste();
+                    break;
+                }
+                case ACTION_GROUP: {
+                    this.copy();
                     break;
                 }
                 case ACTION_MOUSE_UP: {
@@ -110,8 +121,14 @@ namespace UmlLight {
             //todo: go through the list of selected figures and take this out of store.figures list
         }
         copy(){
-            //todo: go through the list of selected figures, create a deep copy
-            //todo: move all the selected figures by defined amount using 'move' function on all selected figures and passing this new list
+            //todo: go through the list of selected figures, create a deep copy 
+            //todo: add the list of 'copied figures' store attribute
+        }
+        paste(){
+            //todo:get the mouse clicked position from store
+            this.store.mouseClickedPos;
+            //todo: get the left most one from the copied the list and check the offset between this and 'mouse clicked' position
+            //todo: move all the figures in the list through the computed 'offset'
         }
         
         getMovementOffset(): Offset {

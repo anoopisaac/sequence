@@ -41,6 +41,7 @@ namespace UmlLight {
     const ACTION_COPY: string = "COPY";
     const ACTION_PASTE: string = "PASTE";
     const ACTION_GROUP: string = "GROUP";
+    const ACTION_UNGROUP: string = "UNGROUP";
     const TYPE_ACTIVATION: string = "ACTIVATION"
     const ACTION_RIGHT_CLICK: string = "RIGHT_CLICK"
 
@@ -94,7 +95,11 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_GROUP: {
-                    this.copy();
+                    this.group();
+                    break;
+                }
+                case ACTION_UNGROUP: {
+                    this.ungroup();
                     break;
                 }
                 case ACTION_MOUSE_UP: {
@@ -135,6 +140,12 @@ namespace UmlLight {
             this.store.mouseClickedPos;
             //todo: get the left most one from the copied the list and check the offset between this and 'mouse clicked' position
             //todo: move all the figures in the list through the computed 'offset'
+        }
+        group(){
+            //todo: add all the selected figures to a single group
+        }
+        ungroup(){
+            //todo: delete all the groups that has contains selected figures
         }
         rightClick(){
             //todo:if all the selected figures belong to any one the group, take out 'group' from store's 'right click entries'

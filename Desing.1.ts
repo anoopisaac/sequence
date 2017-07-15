@@ -36,7 +36,7 @@ namespace UmlLight {
     const ACTION_CNTRL_DOWN: string = "CNTRL_DOWN";
     const ACTION_CNTRL_UP: string = "CNTRL_UP";
     const ACTION_DELETE: string = "DELETE";
-
+    const ACTION_COPY: string = "COPY";
     const TYPE_ACTIVATION: string = "Activation"
 
 
@@ -76,6 +76,10 @@ namespace UmlLight {
                     
                     break;
                 }
+                case ACTION_COPY: {
+                    
+                    break;
+                }
                 case ACTION_MOUSE_UP: {
                     this.store.mouseDown = false;
                     //todo: if 'aboutTobeConnectedActivation' is not null, call the connect call in 'activation'
@@ -107,7 +111,7 @@ namespace UmlLight {
         }
         copy(){
             //todo: go through the list of selected figures, create a deep copy
-            //todo: move all the selected figures by defined amount using 'move' function on all selected figures
+            //todo: move all the selected figures by defined amount using 'move' function on all selected figures and passing this new list
         }
         
         getMovementOffset(): Offset {

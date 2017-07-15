@@ -15,6 +15,7 @@ namespace UmlLight {
         copiedFigures:Figure[];
         mouseDown: boolean = false;
         cntrlDown: boolean = false;
+        rightClickEntries:string[];
         //this will hold all the groups user selected
         groups:[Figure[]];
         aboutTobeConnectedActivation:{activation:Activation,position:Position,message:Message};
@@ -40,7 +41,8 @@ namespace UmlLight {
     const ACTION_COPY: string = "COPY";
     const ACTION_PASTE: string = "PASTE";
     const ACTION_GROUP: string = "GROUP";
-    const TYPE_ACTIVATION: string = "Activation"
+    const TYPE_ACTIVATION: string = "ACTIVATION"
+    const ACTION_RIGHT_CLICK: string = "RIGHT_CLICK"
 
 
 
@@ -87,6 +89,10 @@ namespace UmlLight {
                     this.paste();
                     break;
                 }
+                case ACTION_RIGHT_CLICK: {
+                    this.paste();
+                    break;
+                }
                 case ACTION_GROUP: {
                     this.copy();
                     break;
@@ -129,6 +135,11 @@ namespace UmlLight {
             this.store.mouseClickedPos;
             //todo: get the left most one from the copied the list and check the offset between this and 'mouse clicked' position
             //todo: move all the figures in the list through the computed 'offset'
+        }
+        rightClick(){
+            //todo:if all the selected figures belong to any one the group, take out 'group' from store's 'right click entries'
+            //todo: if none of them belong to a group take out 'ungroup' from the list
+            //todo: the else condition is automatically handled, as both are present by default in the 'right click entries'
         }
         
         getMovementOffset(): Offset {

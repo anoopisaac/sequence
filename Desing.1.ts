@@ -133,7 +133,7 @@ namespace UmlLight {
             }
             else {
                 //move the figure
-                this.moveFigure(data);
+                this.moveFigure(data,this.store.selectedFigures);
             }
 
         }
@@ -169,8 +169,7 @@ namespace UmlLight {
             }
         }
 
-        moveFigure(data: Data) {
-            var selectedFigures = this.store.selectedFigures;
+        moveFigure(data: Data,selectedFigures:Figure[]) {
             selectedFigures.forEach(figure => {
                 figure.move(data.offset);
 

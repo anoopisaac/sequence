@@ -105,6 +105,10 @@ namespace UmlLight {
         delete(){
             //todo: go through the list of selected figures and take this out of store.figures list
         }
+        copy(){
+            //todo: go through the list of selected figures, create a deep copy
+            //todo: move all the selected figures by defined amount using 'move' function on all selected figures
+        }
         
         getMovementOffset(): Offset {
             return null;

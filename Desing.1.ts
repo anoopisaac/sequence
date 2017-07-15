@@ -7,18 +7,18 @@
 namespace UmlLight {
 
     class Store {
-        figures: Figure[] = [];
-        selectedFigures:Figure[]=[];
+        umlFigures: UmlFigure[] = [];
+        selectedFigures: UmlFigure[] = [];
         selectedBoxGuide: Guide;
         selectedMessageGuide: Guide;
         mouseClickedPos: Position;
-        copiedFigures:Figure[];
+        copiedFigures: UmlFigure[];
         mouseDown: boolean = false;
         cntrlDown: boolean = false;
-        rightClickEntries:string[];
+        rightClickEntries: string[];
         //this will hold all the groups user selected
-        groups:[Figure[]];
-        aboutTobeConnectedActivation:{activation:Activation,position:Position,message:Message};
+        groups: [UmlFigure[]];
+        aboutTobeConnectedActivation: { activation: Activation, position: Position, message: Message };
         //the kind of data that is common for all the figures present in the store
         setup: SetUp;
 
@@ -61,7 +61,7 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_FIGURE_SELECT: {
-                    
+
                     this.select(action.data.target);
                     break;
                 }
@@ -128,31 +128,31 @@ namespace UmlLight {
                 }
             }
         }
-        delete(){
+        delete() {
             //todo: go through the list of selected figures and take this out of store.figures list
         }
-        copy(){
+        copy() {
             //todo: go through the list of selected figures, create a deep copy 
             //todo: add the list of 'copied figures' store attribute
         }
-        paste(){
+        paste() {
             //todo:get the mouse clicked position from store
             this.store.mouseClickedPos;
             //todo: get the left most one from the copied the list and check the offset between this and 'mouse clicked' position
             //todo: move all the figures in the list through the computed 'offset'
         }
-        group(){
+        group() {
             //todo: add all the selected figures to a single group
         }
-        ungroup(){
+        ungroup() {
             //todo: delete all the groups that has contains selected figures
         }
-        rightClick(){
+        rightClick() {
             //todo:if all the selected figures belong to any one the group, take out 'group' from store's 'right click entries'
             //todo: if none of them belong to a group take out 'ungroup' from the list
             //todo: the else condition is automatically handled, as both are present by default in the 'right click entries'
         }
-        
+
         getMovementOffset(): Offset {
             return null;
         }
@@ -176,18 +176,18 @@ namespace UmlLight {
             }
             else {
                 //move the figure
-                this.moveFigure(data,this.store.selectedFigures);
+                this.moveFigure(data, this.store.selectedFigures);
             }
 
         }
         scaleFigure(data: Data) {
             if (this.store.selectedBoxGuide) {
-                var selectedFig: Figure = this.store.selectedBoxGuide.figure;
+                var selectedFig: UmlFigure = this.store.selectedBoxGuide.figure;
                 selectedFig.scale(this.store.selectedBoxGuide, data.offset);
             }
             else {
                 //todo:before going through the activations unlight the highlighted message if any
-                this.store.aboutTobeConnectedActivation.message.highLight(false,this.store.selectedBoxGuide);
+                this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.selectedBoxGuide);
                 //its message guide thats selected
                 var message: Message = <Message>this.store.selectedMessageGuide.figure;
                 message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
@@ -202,17 +202,17 @@ namespace UmlLight {
                         message.movePos(this.store.selectedMessageGuide, connectedPos);
                         //true denotes highligh
                         //todo:get whether its start guide or end guide and pass accordingly
-                        message.highLight(true,this.store.selectedMessageGuide);
+                        message.highLight(true, this.store.selectedMessageGuide);
                         //todo: populate aboutTobeConnectedActivation
                         //todo:break after all connections are made
                     }
                 })
-                
+
 
             }
         }
 
-        moveFigure(data: Data,selectedFigures:Figure[]) {
+        moveFigure(data: Data, selectedFigures: UmlFigure[]) {
             selectedFigures.forEach(figure => {
                 figure.move(data.offset);
 
@@ -276,6 +276,9 @@ namespace UmlLight {
         snap: SnapLines;
     }
 
+
+
+
     class Figure {
         figureVertices: FigureVertex[] = [];//this would be in percentages, this would decide the actual shape of the figure which will be done in svg
         position: Position;//relatie position of the figure
@@ -284,7 +287,7 @@ namespace UmlLight {
         selected: boolean;
         rotation: number;
 
-        constructor(private parent: Figure) {
+        constructor(private parent: UmlFigure) {
 
         }
 
@@ -297,9 +300,15 @@ namespace UmlLight {
             //todo:move left and top based on the offset if guide seems to be the one on the left side.
 
         }
+    }
+    class Icon extends Figure {
 
     }
-    class LifeLine extends Figure implements Guidable, Snappable {
+    class UmlFigure extends Figure {
+
+
+    }
+    class LifeLine extends UmlFigure implements Guidable, Snappable {
         snap: SnapLines;
         guides: Guide[];//this needs to be populated by the implementing figure
         lifeHead: LifeLineHead;
@@ -309,7 +318,7 @@ namespace UmlLight {
         vertices: Position[];
     }
 
-    class Activation extends Figure implements Guidable {
+    class Activation extends UmlFigure implements Guidable {
         guides: Guide[];//needed only to control the depth
 
         outgoingMessages: ConnectedMessage[];
@@ -332,11 +341,11 @@ namespace UmlLight {
 
     }
 
-    interface SelectedSnap { figure: Figure; snapLine: number; distance: number }
+    interface SelectedSnap { figure: UmlFigure; snapLine: number; distance: number }
     class GridService {
         store: Store;
 
-        getClosestSnaps(selectedFigures: Figure[]): SelectedSnap[] {
+        getClosestSnaps(selectedFigures: UmlFigure[]): SelectedSnap[] {
             //todo:go through all other figures from the stores and get the snapping line for all those
             var allOtherSnaps: number[];
             var selectedSnaps: SelectedSnap[];
@@ -352,7 +361,7 @@ namespace UmlLight {
             return reducedSnaps;
 
         }
-        getAllOtherSnapLines(figures: Figure[]): number[] {
+        getAllOtherSnapLines(figures: UmlFigure[]): number[] {
             //todo:go through all other figures from the stores and get the snapping line for all those
             return null;
         }
@@ -370,7 +379,7 @@ namespace UmlLight {
         position: Position;
     }
     class Guide {
-        figure: Figure;//would be the figure which implements this, value for this would come from 'BoxSelection' class
+        figure: UmlFigure;//would be the figure which implements this, value for this would come from 'BoxSelection' class
         position: Position; //this is needed as the figure has figure out, which guide was clicked later on
         absPosition: Position;// this would decide the actual position where guide has to go, would be calcuated by the impl figure
         visible: boolean;//decides whether this particular guide needs to be shown, for some figures all the guides might not be shown
@@ -380,7 +389,7 @@ namespace UmlLight {
         y: number[] = [];
     }
 
-    class Message extends Figure implements Guidable {
+    class Message extends UmlFigure implements Guidable {
         guides: Guide[];//needed to control where the arrow goes
         startLifeLine: LifeLine;//probably this reference would be redudant when you think of the whole picture starting from getting it from database
         destLifeLine: LifeLine;
@@ -411,7 +420,7 @@ namespace UmlLight {
 
 
     class FigureAttrService {
-        getAbsolutePosition(figure: Figure, pos: Position): Position {
+        getAbsolutePosition(figure: UmlFigure, pos: Position): Position {
             //traverse till the root component and find the abs location.It might be needed when message connect 2 components.
             return null;
         }

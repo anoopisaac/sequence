@@ -8,13 +8,15 @@ namespace UmlLight {
 
     class Store {
         figures: Figure[] = [];
-        selectedFiguresToMove: Figure[] = [];
+        selectedFigures:Figure[]=[];
         selectedBoxGuide: Guide;
         selectedMessageGuide: Guide;
         mouseClickedPos: Position;
         mouseDown: boolean = false;
         cntrlDown: boolean = false;
-        aboutTobeConnectedActivation:{activation:Activation,position:Position};
+        //this will hold all the groups user selected
+        groups:[Figure[]];
+        aboutTobeConnectedActivation:{activation:Activation,position:Position,message:Message};
         //the kind of data that is common for all the figures present in the store
         setup: SetUp;
 
@@ -110,7 +112,7 @@ namespace UmlLight {
         onMouseMove(data: Data) {
             //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
             //check whether movement belongs to guide
-            if (this.store.selectedBoxGuide || this.store.selectedFiguresToMove) {
+            if (this.store.selectedBoxGuide || this.store.selectedMessageGuide) {
                 this.scaleFigure(data);
             }
             else {
@@ -127,6 +129,8 @@ namespace UmlLight {
                 selectedFig.scale(this.store.selectedBoxGuide, data.offset);
             }
             else {
+                //todo:before going through the activations unlight the highlighted message if any
+                this.store.aboutTobeConnectedActivation.message.highLight(false,this.store.selectedBoxGuide);
                 //its message guide thats selected
                 var message: Message = <Message>this.store.selectedMessageGuide.figure;
                 message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
@@ -146,13 +150,15 @@ namespace UmlLight {
                         //todo:break after all connections are made
                     }
                 })
-                //todo: if no one is connected call delight on aboutTobeConnectedActivation and make this to null
+                
 
             }
         }
 
         moveFigure(data: Data) {
-            var selectedFigures = this.store.selectedFiguresToMove;
+            var selectedFigures = this.store.selectedFigures;
+            //todo: go through the selected figures and check whether its part of any group, if so add those as well to the selectedFigures
+            //toto: go through the selectedfigures and remove the duplicates which would have come as part of the groups
             selectedFigures.forEach(figure => {
                 figure.move(data.offset);
 
@@ -164,7 +170,7 @@ namespace UmlLight {
 
 
         handleSnapping(data: Data) {
-            var selectedFigures = this.store.selectedFiguresToMove;
+            var selectedFigures = this.store.selectedFigures;
             var selectedSnaps: SelectedSnap[] = this.grideService.getClosestSnaps(selectedFigures);
             //todo: code for showing selected snap lines
             //todo: go through selected figures and move snapped amount

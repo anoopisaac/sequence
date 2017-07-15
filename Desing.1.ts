@@ -35,6 +35,7 @@ namespace UmlLight {
     const ACTION_MOUSE_UP: string = "MOUSE_UP"
     const ACTION_CNTRL_DOWN: string = "CNTRL_DOWN";
     const ACTION_CNTRL_UP: string = "CNTRL_UP";
+    const ACTION_DELETE: string = "DELETE";
 
     const TYPE_ACTIVATION: string = "Activation"
 
@@ -71,6 +72,10 @@ namespace UmlLight {
                     //todo: populate the mouse click position
                     break;
                 }
+                case ACTION_DELETE: {
+                    
+                    break;
+                }
                 case ACTION_MOUSE_UP: {
                     this.store.mouseDown = false;
                     //todo: if 'aboutTobeConnectedActivation' is not null, call the connect call in 'activation'
@@ -97,6 +102,10 @@ namespace UmlLight {
                 }
             }
         }
+        delete(){
+            //todo: go through the list of selected figures and take this out of store.figures list
+        }
+        
         getMovementOffset(): Offset {
             return null;
         }
@@ -122,8 +131,6 @@ namespace UmlLight {
                 //move the figure
                 this.moveFigure(data);
             }
-
-
 
         }
         scaleFigure(data: Data) {

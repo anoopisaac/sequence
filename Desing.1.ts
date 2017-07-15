@@ -54,6 +54,7 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_FIGURE_SELECT: {
+                    
                     this.select(action.data.target);
                     break;
                 }
@@ -107,6 +108,8 @@ namespace UmlLight {
             else {
                 //todo:a fresh list starting with the selected one
             }
+            //todo: go through the selected figures and check whether its part of any group, if so add those as well to the selectedFigures
+            //toto: go through the selectedfigures and remove the duplicates which would have come as part of the groups
 
         }
         onMouseMove(data: Data) {
@@ -157,8 +160,6 @@ namespace UmlLight {
 
         moveFigure(data: Data) {
             var selectedFigures = this.store.selectedFigures;
-            //todo: go through the selected figures and check whether its part of any group, if so add those as well to the selectedFigures
-            //toto: go through the selectedfigures and remove the duplicates which would have come as part of the groups
             selectedFigures.forEach(figure => {
                 figure.move(data.offset);
 

@@ -9,8 +9,9 @@ namespace UmlLight {
     class Store {
         umlFigures: UmlFigure[] = [];
         selectedFigures: UmlFigure[] = [];
+        currentSelection: string;//currently selected object in tool
         selectedBoxGuide: Guide;
-        selectedMessageGuide: Guide;
+        selectedMessageGuide: MessageGuide;
         mouseClickedPos: Position;
         copiedFigures: UmlFigure[];
         mouseDown: boolean = false;
@@ -27,6 +28,7 @@ namespace UmlLight {
         cellSize: number;
 
     }
+    //different actions that are allowed
     const ACTION_FIGURE_SELECT: string = "FIGURE_SELECTED";
     const ACTION_BOX_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
     const ACTION_MESSAGE_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
@@ -45,6 +47,11 @@ namespace UmlLight {
     const TYPE_ACTIVATION: string = "ACTIVATION"
     const ACTION_RIGHT_CLICK: string = "RIGHT_CLICK"
 
+    //constants to decide which one is currently selected
+    const SELECTED_MESSAGE_GUIDE = "MESSAGE_GUIDE"
+    const SELECTED_UMLFIGURE_GUIDE = "UMLFIGURE_GUIDE"
+    const SELECTED_UMLFIGURE = "UMLFIGURE"
+    const SELECTED_FIGURE_ICON = "FIGURE_ICOND"
 
 
     class StoreUpdateService {
@@ -61,16 +68,15 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_FIGURE_SELECT: {
-
-                    this.select(action.data.target);
+                    this.select(action.data.selectedFigure);
                     break;
                 }
                 case ACTION_BOX_GUIDE_SELECT: {
-                    this.store.selectedBoxGuide = action.data.target;
+                    this.store.selectedBoxGuide = action.data.selectedGuide;
                     break;
                 }
                 case ACTION_MESSAGE_GUIDE_SELECT: {
-                    this.store.selectedMessageGuide = action.data.target;
+                    this.store.selectedMessageGuide = action.data.selectedMessageGuide;
                     break;
                 }
                 case ACTION_MOUSE_DOWN: {
@@ -166,50 +172,76 @@ namespace UmlLight {
             }
             //todo: go through the selected figures and check whether its part of any group, if so add those as well to the selectedFigures
             //toto: go through the selectedfigures and remove the duplicates which would have come as part of the groups
+            //todo: if there are more than one entries, you need to hide guideboxes for figures, only moving is allowed , no scaling
 
         }
         onMouseMove(data: Data) {
             //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
             //check whether movement belongs to guide
+            switch (this.store.currentSelection) {
+
+                // const SELECTED_MESSAGE_GUIDE="MESSAGE_GUIDE"
+                // const SELECTED_UMLFIGURE_GUIDE="UMLFIGURE_GUIDE"
+                // const SELECTED_UMLFIGURE="UMLFIGURE"
+                // const SELECTED_FIGURE_ICON="FIGURE_ICOND"
+                case SELECTED_MESSAGE_GUIDE: {
+                    this.scaleMessage(data);
+                    break;
+                }
+                case SELECTED_UMLFIGURE_GUIDE: {
+                    this.scaleFigure(data);
+                    break;
+                }
+                case SELECTED_UMLFIGURE: {
+                    this.moveFigure(data, this.store.selectedFigures);
+                    break;
+                }
+                case SELECTED_FIGURE_ICON: {
+                    //todo:put the changes for moving icon
+                    break;
+                }
+                default: {
+                    //statements; 
+                    break;
+                }
+            }
             if (this.store.selectedBoxGuide || this.store.selectedMessageGuide) {
                 this.scaleFigure(data);
             }
             else {
                 //move the figure
-                this.moveFigure(data, this.store.selectedFigures);
+
             }
 
         }
         scaleFigure(data: Data) {
-            if (this.store.selectedBoxGuide) {
-                var selectedFig: UmlFigure = this.store.selectedBoxGuide.figure;
-                selectedFig.scale(this.store.selectedBoxGuide, data.offset);
-            }
-            else {
-                //todo:before going through the activations unlight the highlighted message if any
-                this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.selectedBoxGuide);
-                //its message guide thats selected
-                var message: Message = <Message>this.store.selectedMessageGuide.figure;
-                message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
-                //check whether modified arrow is close to any of the 'activation' figures
-                //todo:filter out activation figure from store figure list
-                var activations: Activation[] = [];
-                activations.forEach(activation => {
-                    //get the new position that would be connected to selcted activation figure
-                    var connectedPos: Position = this.grideService.isMessageClose(activation, data.mouseLocation);
-                    if (connectedPos) {
-                        //this is to move to connected pos
-                        message.movePos(this.store.selectedMessageGuide, connectedPos);
-                        //true denotes highligh
-                        //todo:get whether its start guide or end guide and pass accordingly
-                        message.highLight(true, this.store.selectedMessageGuide);
-                        //todo: populate aboutTobeConnectedActivation
-                        //todo:break after all connections are made
-                    }
-                })
+            this.store.selectedBoxGuide[0].scale(this.store.selectedBoxGuide, data.offset);
 
+        }
 
-            }
+        scaleMessage(data: Data) {
+
+            //todo:before going through the activations unlight the highlighted message if any
+            this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.selectedMessageGuide);
+            //its message guide thats selected
+            var message: Message = <Message>this.store.selectedFigures[0];
+            message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
+            //check whether modified arrow is close to any of the 'activation' figures
+            //todo:filter out activation figure from store figure list
+            var activations: Activation[] = [];
+            activations.forEach(activation => {
+                //get the new position that would be connected to selcted activation figure
+                var connectedPos: Position = this.grideService.isMessageClose(activation, data.mouseLocation);
+                if (connectedPos) {
+                    //this is to move to connected pos
+                    message.movePos(this.store.selectedMessageGuide, connectedPos);
+                    //true denotes highligh
+                    //todo:get whether its start guide or end guide and pass accordingly
+                    message.highLight(true, this.store.selectedMessageGuide);
+                    //todo: populate aboutTobeConnectedActivation
+                    //todo:break after all connections are made
+                }
+            })
         }
 
         moveFigure(data: Data, selectedFigures: UmlFigure[]) {
@@ -242,11 +274,12 @@ namespace UmlLight {
         type: string;
         data: Data;
     }
-    interface Data {
-        target: any;
-
-        offset?: Offset;
-        mouseLocation?: Position;
+    class Data {
+        selectedFigure: Figure;
+        selectedGuide: Guide;
+        selectedMessageGuide: MessageGuide;
+        offset: Offset;
+        mouseLocation: Position;
     }
 
     class Offset {
@@ -268,7 +301,7 @@ namespace UmlLight {
     }
 
     interface Guidable {
-        guides: Guide[];
+        guideBox: GuideBox;
 
     }
 
@@ -280,7 +313,7 @@ namespace UmlLight {
 
 
     class Figure {
-        figureVertices: FigureVertex[] = [];//this would be in percentages, this would decide the actual shape of the figure which will be done in svg
+
         position: Position;//relatie position of the figure
 
         figureAttrs: FigureAttrs;
@@ -305,12 +338,12 @@ namespace UmlLight {
 
     }
     class UmlFigure extends Figure {
-
+        figureVertices: FigureVertex[] = [];//this would be in percentages, this would decide the actual shape of the figure which will be done in svg
 
     }
     class LifeLine extends UmlFigure implements Guidable, Snappable {
         snap: SnapLines;
-        guides: Guide[];//this needs to be populated by the implementing figure
+        guideBox: GuideBox;//todo:this needs to be populated by the implementing figure
         lifeHead: LifeLineHead;
     }
     class LifeLineHead {
@@ -319,7 +352,7 @@ namespace UmlLight {
     }
 
     class Activation extends UmlFigure implements Guidable {
-        guides: Guide[];//needed only to control the depth
+        guideBox: GuideBox;//todo:this needs to be populated by the implementing figure
 
         outgoingMessages: ConnectedMessage[];
         incomingMessages: ConnectedMessage[];
@@ -378,19 +411,24 @@ namespace UmlLight {
     class FigureVertex {
         position: Position;
     }
-    class Guide {
-        figure: UmlFigure;//would be the figure which implements this, value for this would come from 'BoxSelection' class
-        position: Position; //this is needed as the figure has figure out, which guide was clicked later on
-        absPosition: Position;// this would decide the actual position where guide has to go, would be calcuated by the impl figure
+    class GuideBox extends Figure {
+        //todo:implementing figure is not referred from here, as implementing figures would be fetched from selected figures of the store
+        //todo: use the 'position' from 'Figure' base class, value for which would be populated form implementing class
+        guides: Guide[];//todo:this would be standard set 
         visible: boolean;//decides whether this particular guide needs to be shown, for some figures all the guides might not be shown
+    }
+    class Guide {
+        top: number//todo: this would be percentages populated by 'GuideBox'
+        left: number//todo: this would be percentages populated by 'GuideBox'
+
     }
     class SnapLines {
         x: number[] = [];
         y: number[] = [];
     }
 
-    class Message extends UmlFigure implements Guidable {
-        guides: Guide[];//needed to control where the arrow goes
+    class Message extends UmlFigure {
+        messaeGuide: MessageGuide;//needed to control where the arrow goes
         startLifeLine: LifeLine;//probably this reference would be redudant when you think of the whole picture starting from getting it from database
         destLifeLine: LifeLine;
         startPos: Position;// todo: this needs to populated when initially all figures are loaded based on json entry in the database
@@ -399,17 +437,28 @@ namespace UmlLight {
             super(null);
         }
 
-        highLight(status: boolean, selectedGuide: Guide) {
+        highLight(status: boolean, selectedGuide: MessageGuide) {
             //todo:highlight/delight the position based on the status
             //todo: find whether its start or end guide and highlight it accordingly 
         }
 
-        movePos(selectedGuide: Guide, newPos: Position) {
+        movePos(selectedGuide: MessageGuide, newPos: Position) {
             //this will called when start lifeline moves if its connected or when user decides to move it by clicking start 'guide'
             //todo: find whether its start or end guide and assign it accordingly to 'startpos' or endps
         }
 
 
+    }
+
+    class MessageGuide {
+        guideLocation:GuideLocation;
+        position: Position;//this gets passed along by the implementing 'Message'
+
+    }
+
+    enum GuideLocation {
+        START,
+        END
     }
 
     //this would require a equation for genrating a curve lined
@@ -439,13 +488,13 @@ namespace UmlLight {
 
 
     class FigureIcon extends Figure {
-        //location of png file
+        //todo:location of png file
         imgUrl: string;
-        //this attribute would add additional class that would cause it to be transparent, its needed when one of the figures are selected
-        isSelected: boolean;
+        //todo: is selected attribute from the parent would add additional class that would cause it to be transparent, its needed when one of the figures are selected
+
 
     }
-    class FigurePanel {
+    class IconPanel {
         figureIcons: FigureIcon[];
         selectedFigureIcon: FigureIcon;
         mouseDown(event: Event) {
@@ -471,7 +520,7 @@ namespace UmlLight {
 
     // component that holds figure panel and the canvas where its drawn
     class UmlDesignTool {
-        figurePanel: FigurePanel;
+        iconPanel: IconPanel;
         umlCanvas: UmlCanvas;
         selectedToMove: Figure[] = [];
         selectedToScale: Guide;

@@ -151,15 +151,17 @@ namespace UmlLight {
                 }
                 //actions for icon panel
                 case ACTION_ICON_SELECTED: {
-                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
+                    //todo: set selected figure under iconpanel
+                    
                     break;
                 }
                 case ACTION_ICON_RELEASED: {
-                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
+                    //todo: removed selected figure under iconpanel
+                    
                     break;
                 }
                 case ACTION_ICON_MOVE: {
-                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
+                    //todo: call move on selected icon
                     break;
                 }
 
@@ -246,6 +248,13 @@ namespace UmlLight {
         scaleFigure(data: Data) {
             this.store.canvas.selectedFigures[0].scale(this.store.canvas.selectedBoxGuide, data.move.offset);
 
+        }
+        induceNewUmlFigure(data:Data){
+            //this is called when user selects any of icon and moves it to main canvas
+            //todo: add the new figure under store>canvas>figures
+            //todo: make selected figure under store>icon as NIL
+            //todo: set store>move>currentslection as 'selected_uml_figure'
+            //todo: call moveFigure method
         }
 
         scaleMessage(data: Data) {
@@ -529,23 +538,35 @@ namespace UmlLight {
 
 
     }
-    class IconPanel {
+    //note the fact that these are components
+    class IconPanelComponent {
         figureIcons: FigureIcon[];
         selectedFigureIcon: FigureIcon;
         mouseDown(event: Event) {
-            //add the selected to selectedfigureicon
+            //todo:call corresponding action using 
 
         }
         mouseMove(event: Event) {
-            //move the selected icon by calling move on it and passing the offset
+            //todo:call corresponding action using 
         }
         mouseUp(event: Event) {
-            //make the selectedfigureicon NIL so that nothing shows up
+            //todo:call corresponding action using 
         }
     }
 
-    class UmlCanvas {
+    class UmlCanvasComponent {
+        mouseDown(event: Event) {
+           //todo:call corresponding action using 
 
+        }
+        mouseMove(event: Event) {
+           //todo:call corresponding action using 
+
+        }
+       
+        mouseUp(event: Event) {
+           //todo:call corresponding action using 
+        }
     }
 
     class Event {
@@ -554,30 +575,24 @@ namespace UmlLight {
 
 
     // component that holds figure panel and the canvas where its drawn
-    class UmlDesignTool {
-        iconPanel: IconPanel;
-        umlCanvas: UmlCanvas;
+    class UmlDesignToolComponent {
+        iconPanel: IconPanelComponent;
+        umlCanvas: UmlCanvasComponent;
 
         mouseDown(event: Event) {
-            this.populatedHolders();
+           //todo:not sure whether i need to implement this
 
         }
         mouseMove(event: Event) {
-
-
-        }
-        checkImpact() {
-        }
-        checkMessageMoveImpact() {
-
+           //todo:not sure whether i need to implement this
 
         }
+       
         mouseUp(event: Event) {
+           //todo:not sure whether i need to implement this
         }
 
-        populatedHolders() {
-
-        }
+       
     }
 
 

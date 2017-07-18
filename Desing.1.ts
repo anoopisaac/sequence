@@ -7,8 +7,9 @@
 namespace UmlLight {
 
     class Store {
-        umlFigures: UmlFigure[] = [];
-        selectedFigures: UmlFigure[] = [];
+        canvas:{umlFigures:UmlFigure[];selectedFigures: UmlFigure[]}
+        iconPanel:{icons:Icon[];selectedIcon:Icon}
+        
         currentSelection: string;//currently selected object in tool
         selectedBoxGuide: Guide;
         selectedMessageGuide: MessageGuide;
@@ -193,7 +194,7 @@ namespace UmlLight {
                     break;
                 }
                 case SELECTED_UMLFIGURE: {
-                    this.moveFigure(data, this.store.selectedFigures);
+                    this.moveFigure(data, this.store.canvas.umlFigures);
                     break;
                 }
                 case SELECTED_FIGURE_ICON: {
@@ -224,7 +225,7 @@ namespace UmlLight {
             //todo:before going through the activations unlight the highlighted message if any
             this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.selectedMessageGuide);
             //its message guide thats selected
-            var message: Message = <Message>this.store.selectedFigures[0];
+            var message: Message = <Message>this.store.canvas.umlFigures[0];
             message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
             //check whether modified arrow is close to any of the 'activation' figures
             //todo:filter out activation figure from store figure list
@@ -256,7 +257,7 @@ namespace UmlLight {
 
 
         handleSnapping(data: Data) {
-            var selectedFigures = this.store.selectedFigures;
+            var selectedFigures = this.store.canvas.umlFigures;
             var selectedSnaps: SelectedSnap[] = this.grideService.getClosestSnaps(selectedFigures);
             //todo: code for showing selected snap lines
             //todo: go through selected figures and move snapped amount
@@ -439,7 +440,7 @@ namespace UmlLight {
 
         highLight(status: boolean, selectedGuide: MessageGuide) {
             //todo:highlight/delight the position based on the status
-            //todo: find whether its start or end guide and highlight it accordingly 
+            //todo: find whether its start or end guide and highlight it accordingly , using messageguide location
         }
 
         movePos(selectedGuide: MessageGuide, newPos: Position) {
@@ -522,12 +523,7 @@ namespace UmlLight {
     class UmlDesignTool {
         iconPanel: IconPanel;
         umlCanvas: UmlCanvas;
-        selectedToMove: Figure[] = [];
-        selectedToScale: Guide;
-        selectedFigureIcon: FigureIcon;
-        canvasFigures: Figure[] = [];
-
-
+        
         mouseDown(event: Event) {
             this.populatedHolders();
 
@@ -550,11 +546,7 @@ namespace UmlLight {
         }
     }
 
-    class RefreshStoreService {
-        refresh(figures: Figure[]) {
-
-        }
-    }
+    
 
 
 }

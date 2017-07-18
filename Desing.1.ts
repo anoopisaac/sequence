@@ -3,21 +3,34 @@
 //2.you could bring any svg element to front by rendering it at teh last, would need design changes
 //all figures will have unique id, so that they could be referenced from other figures
 //3.while storing figures all the figure references in would be replaced by their unique id
+//4.populate 'current selection' to decide on what kind of move
 
 namespace UmlLight {
 
     class Store {
-        canvas: { umlFigures: UmlFigure[]; selectedFigures: UmlFigure[] }
-        iconPanel: { icons: Icon[]; selectedIcon: Icon }
+        canvas: {
+            umlFigures: UmlFigure[];
+            selectedFigures: UmlFigure[];
+            rightClickEntries: string[];
+            selectedBoxGuide: Guide;
+            selectedMessageGuide: MessageGuide;
+            copiedFigures: UmlFigure[];
+        }
+        iconPanel: {
+            icons: Icon[];
+            selectedIcon: Icon
+        }
+        move: {
+            currentSelection: string;//currently selected object in canvas
+            mouseClickedPos: Position;
+            mouseDown: boolean;
+            cntrlDown: boolean;
+        }
 
-        currentSelection: string;//currently selected object in tool
-        selectedBoxGuide: Guide;
-        selectedMessageGuide: MessageGuide;
-        mouseClickedPos: Position;
-        copiedFigures: UmlFigure[];
-        mouseDown: boolean = false;
-        cntrlDown: boolean = false;
-        rightClickEntries: string[];
+
+
+
+
         //this will hold all the groups user selected
         groups: [UmlFigure[]];
         aboutTobeConnectedActivation: { activation: Activation, position: Position, message: Message };
@@ -68,27 +81,27 @@ namespace UmlLight {
         updateState(action: Action) {
             switch (action.type) {
                 case ACTION_CNTRL_DOWN: {
-                    this.store.cntrlDown = true;
+                    this.store.move.cntrlDown = true;
                     break;
                 }
                 case ACTION_CNTRL_UP: {
-                    this.store.cntrlDown = false;
+                    this.store.move.cntrlDown = false;
                     break;
                 }
                 case ACTION_FIGURE_SELECT: {
-                    this.select(action.data.selectedFigure);
+                    this.select(action.data.canvas.selectedFigure);
                     break;
                 }
                 case ACTION_BOX_GUIDE_SELECT: {
-                    this.store.selectedBoxGuide = action.data.selectedGuide;
+                    this.store.canvas.selectedBoxGuide = action.data.canvas.selectedGuide;
                     break;
                 }
                 case ACTION_MESSAGE_GUIDE_SELECT: {
-                    this.store.selectedMessageGuide = action.data.selectedMessageGuide;
+                    this.store.canvas.selectedMessageGuide = action.data.canvas.selectedMessageGuide;
                     break;
                 }
                 case ACTION_MOUSE_DOWN: {
-                    this.store.mouseDown = true;
+                    this.store.move.mouseDown = true;
                     //todo: populate the mouse click position
                     break;
                 }
@@ -117,15 +130,15 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_MOUSE_UP: {
-                    this.store.mouseDown = false;
+                    this.store.move.mouseDown = false;
                     //todo: if 'aboutTobeConnectedActivation' is not null, call the connect call in 'activation'
                     break;
                 }
                 case ACTION_MOUSE_MOVE: {
                     //movement should be tracked only if its dragged with mouse down
-                    if (this.store.mouseDown) {
+                    if (this.store.move.mouseDown) {
                         var offset: Offset = this.getMovementOffset();
-                        action.data.offset = offset;
+                        action.data.move.offset = offset;
                         this.onMouseMove(action.data);
                     }
 
@@ -133,20 +146,20 @@ namespace UmlLight {
                     break;
                 }
                 case ACTION_SET_MOUSE_POS: {
-                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
                     break;
                 }
                 //actions for icon panel
                 case ACTION_ICON_SELECTED: {
-                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
                     break;
                 }
                 case ACTION_ICON_RELEASED: {
-                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
                     break;
                 }
                 case ACTION_ICON_MOVE: {
-                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    this.store.move.mouseClickedPos = action.data.move.mouseLocation;
                     break;
                 }
 
@@ -165,7 +178,7 @@ namespace UmlLight {
         }
         paste() {
             //todo:get the mouse clicked position from store
-            this.store.mouseClickedPos;
+            this.store.move.mouseClickedPos;
             //todo: get the left most one from the copied the list and check the offset between this and 'mouse clicked' position
             //todo: move all the figures in the list through the computed 'offset'
         }
@@ -186,7 +199,7 @@ namespace UmlLight {
         }
         select(target: any) {
 
-            if (this.store.cntrlDown) {
+            if (this.store.move.cntrlDown) {
                 //todo:add to the list of selected figures of the store
             }
             else {
@@ -200,7 +213,7 @@ namespace UmlLight {
         onMouseMove(data: Data) {
             //todo: set the direction of the move by checking which out of x,y offset is greater, set the other to '0'
             //check whether movement belongs to guide
-            switch (this.store.currentSelection) {
+            switch (this.store.move.currentSelection) {
 
                 // const SELECTED_MESSAGE_GUIDE="MESSAGE_GUIDE"
                 // const SELECTED_UMLFIGURE_GUIDE="UMLFIGURE_GUIDE"
@@ -227,39 +240,33 @@ namespace UmlLight {
                     break;
                 }
             }
-            if (this.store.selectedBoxGuide || this.store.selectedMessageGuide) {
-                this.scaleFigure(data);
-            }
-            else {
-                //move the figure
-
-            }
+            
 
         }
         scaleFigure(data: Data) {
-            this.store.selectedBoxGuide[0].scale(this.store.selectedBoxGuide, data.offset);
+            this.store.canvas.selectedFigures[0].scale(this.store.canvas.selectedBoxGuide, data.move.offset);
 
         }
 
         scaleMessage(data: Data) {
 
             //todo:before going through the activations unlight the highlighted message if any
-            this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.selectedMessageGuide);
+            this.store.aboutTobeConnectedActivation.message.highLight(false, this.store.canvas.selectedMessageGuide);
             //its message guide thats selected
             var message: Message = <Message>this.store.canvas.umlFigures[0];
-            message.movePos(this.store.selectedMessageGuide, data.mouseLocation);
+            message.movePos(this.store.canvas.selectedMessageGuide, data.move.mouseLocation);
             //check whether modified arrow is close to any of the 'activation' figures
             //todo:filter out activation figure from store figure list
             var activations: Activation[] = [];
             activations.forEach(activation => {
                 //get the new position that would be connected to selcted activation figure
-                var connectedPos: Position = this.grideService.isMessageClose(activation, data.mouseLocation);
+                var connectedPos: Position = this.grideService.isMessageClose(activation, data.move.mouseLocation);
                 if (connectedPos) {
                     //this is to move to connected pos
-                    message.movePos(this.store.selectedMessageGuide, connectedPos);
+                    message.movePos(this.store.canvas.selectedMessageGuide, connectedPos);
                     //true denotes highligh
                     //todo:get whether its start guide or end guide and pass accordingly
-                    message.highLight(true, this.store.selectedMessageGuide);
+                    message.highLight(true, this.store.canvas.selectedMessageGuide);
                     //todo: populate aboutTobeConnectedActivation
                     //todo:break after all connections are made
                 }
@@ -268,7 +275,7 @@ namespace UmlLight {
 
         moveFigure(data: Data, selectedFigures: UmlFigure[]) {
             selectedFigures.forEach(figure => {
-                figure.move(data.offset);
+                figure.move(data.move.offset);
 
             })
             //check whether any of the snapping grid of this figure coincides with snapping grids of any others

@@ -7,9 +7,9 @@
 namespace UmlLight {
 
     class Store {
-        canvas:{umlFigures:UmlFigure[];selectedFigures: UmlFigure[]}
-        iconPanel:{icons:Icon[];selectedIcon:Icon}
-        
+        canvas: { umlFigures: UmlFigure[]; selectedFigures: UmlFigure[] }
+        iconPanel: { icons: Icon[]; selectedIcon: Icon }
+
         currentSelection: string;//currently selected object in tool
         selectedBoxGuide: Guide;
         selectedMessageGuide: MessageGuide;
@@ -29,7 +29,7 @@ namespace UmlLight {
         cellSize: number;
 
     }
-    //different actions that are allowed
+    //different actions allowed for canvas area
     const ACTION_FIGURE_SELECT: string = "FIGURE_SELECTED";
     const ACTION_BOX_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
     const ACTION_MESSAGE_GUIDE_SELECT: string = "BOX_GUIDE_SELECTED";
@@ -48,11 +48,18 @@ namespace UmlLight {
     const TYPE_ACTIVATION: string = "ACTIVATION"
     const ACTION_RIGHT_CLICK: string = "RIGHT_CLICK"
 
+    //actions allowed for icons area
+    const ACTION_ICON_SELECTED: string = "ICON_SELECTED" // this should be called on mouse button down
+    const ACTION_ICON_RELEASED: string = "ICON_SELECTED"// this should be called on mouse button up
+    const ACTION_ICON_MOVE: string = "ICON_MOVE"//this should be called on icon move
+
     //constants to decide which one is currently selected
     const SELECTED_MESSAGE_GUIDE = "MESSAGE_GUIDE"
     const SELECTED_UMLFIGURE_GUIDE = "UMLFIGURE_GUIDE"
     const SELECTED_UMLFIGURE = "UMLFIGURE"
     const SELECTED_FIGURE_ICON = "FIGURE_ICOND"
+
+
 
 
     class StoreUpdateService {
@@ -129,6 +136,20 @@ namespace UmlLight {
                     this.store.mouseClickedPos = action.data.mouseLocation;
                     break;
                 }
+                //actions for icon panel
+                case ACTION_ICON_SELECTED: {
+                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    break;
+                }
+                case ACTION_ICON_RELEASED: {
+                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    break;
+                }
+                case ACTION_ICON_MOVE: {
+                    this.store.mouseClickedPos = action.data.mouseLocation;
+                    break;
+                }
+
                 default: {
                     //statements; 
                     break;
@@ -276,11 +297,17 @@ namespace UmlLight {
         data: Data;
     }
     class Data {
-        selectedFigure: Figure;
-        selectedGuide: Guide;
-        selectedMessageGuide: MessageGuide;
-        offset: Offset;
-        mouseLocation: Position;
+        canvas: {
+            selectedFigure: Figure;
+            selectedGuide: Guide;
+            selectedMessageGuide: MessageGuide;
+
+        }
+        move: {
+            offset: Offset;
+            mouseLocation: Position;
+        }
+
     }
 
     class Offset {
@@ -452,7 +479,7 @@ namespace UmlLight {
     }
 
     class MessageGuide {
-        guideLocation:GuideLocation;
+        guideLocation: GuideLocation;
         position: Position;//this gets passed along by the implementing 'Message'
 
     }
@@ -523,7 +550,7 @@ namespace UmlLight {
     class UmlDesignTool {
         iconPanel: IconPanel;
         umlCanvas: UmlCanvas;
-        
+
         mouseDown(event: Event) {
             this.populatedHolders();
 
@@ -546,7 +573,7 @@ namespace UmlLight {
         }
     }
 
-    
+
 
 
 }
